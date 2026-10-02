@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tic-Tac-Toe</title>
+<style>
+:root{--bg:#eef7f1;--fg:#173326;--cell:#fff;--x:#2e7d5b;--o:#d9534f;--accent:#2e7d5b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1c15;--fg:#e4f3ea;--cell:#1a2d23;--x:#5fd3a0;--o:#ff8a80;--accent:#5fd3a0}}
+:root[data-theme="dark"]{--bg:#0f1c15;--fg:#e4f3ea;--cell:#1a2d23;--x:#5fd3a0;--o:#ff8a80;--accent:#5fd3a0}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px;min-height:100vh;box-sizing:border-box}
+h1{margin:0;font-size:1.6rem}
+.row{display:flex;gap:10px;align-items:center;font-weight:700}
+button,select{background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:8px 14px;font-weight:800;font-size:.95rem;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(90vw,360px)}
+.cell{aspect-ratio:1;background:var(--cell);border:0;border-radius:12px;font-size:clamp(2.4rem,14vw,4rem);font-weight:900;cursor:pointer;padding:0}
+.cell.X{color:var(--x)}.cell.O{color:var(--o)}.cell.w{outline:4px solid var(--accent)}
+#st{font-weight:800;font-size:1.15rem;min-height:1.5em}
+</style>
+</head>
+<body>
+<h1>⭕ Tic-Tac-Toe</h1>
+<div class="row"><label for="lv">CPU:</label><select id="lv"><option value="easy">Easy</option><option value="hard" selected>Unbeatable</option></select><button id="nw">New game</button></div>
+<div class="grid" id="g"></div>
+<div id="st"></div>
+<div class="row">You ✕ <b id="w">0</b> · CPU ◯ <b id="l">0</b> · Draws <b id="d">0</b></div>
+<script>
+const $=id=>document.getElementById(id),L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let b,over,sc={w:0,l:0,d:0};
+const g=$('g');for(let i=0;i<9;i++){const c=document.createElement('button');c.className='cell';c.setAttribute('aria-label','cell '+(i+1));c.onclick=()=>play(i);g.appendChild(c)}
+function win(b){for(const l of L)if(b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[1]]===b[l[2]])return l;return null}
+function init(){b=Array(9).fill('');over=false;$('st').textContent='Your turn';render()}
+function render(w){[...g.children].forEach((c,i)=>{c.textContent=b[i]==='X'?'✕':b[i]==='O'?'◯':'';c.className='cell '+b[i]+(w&&w.includes(i)?' w':'')})}
+function mm(b,p){const w=win(b);if(w)return{s:b[w[0]]==='O'?1:-1};if(b.every(v=>v))return{s:0};
+let best={s:p==='O'?-2:2};b.forEach((v,i)=>{if(v)return;b[i]=p;const r=mm(b,p==='O'?'X':'O');b[i]='';if(p==='O'?r.s>best.s:r.s<best.s)best={s:r.s,i}});return best}
+function finish(){const w=win(b);if(w){over=true;render(w);if(b[w[0]]==='X'){sc.w++;$('st').textContent='You win! 🎉'}else{sc.l++;$('st').textContent='CPU wins'}}
+else if(b.every(v=>v)){over=true;sc.d++;$('st').textContent="It's a draw"}else return false;
+$('w').textContent=sc.w;$('l').textContent=sc.l;$('d').textContent=sc.d;return true}
+function play(i){if(over||b[i])return;b[i]='X';render();if(finish())return;
+$('st').textContent='CPU thinking…';
+setTimeout(()=>{const e=b.map((v,k)=>v?-1:k).filter(k=>k>=0);let m;
+if($('lv').value==='easy'&&Math.random()<.6)m=e[Math.random()*e.length|0];else m=mm([...b],'O').i;
+b[m]='O';render();if(!finish())$('st').textContent='Your turn'},350)}
+$('nw').onclick=init;init();
+</script>
+</body>
+</html>
